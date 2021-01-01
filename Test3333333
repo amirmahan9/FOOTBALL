@@ -1,1 +1,25 @@
-{"پیغام":"پسر تاریکی"}
+elseif ( strpos($textmassage , '/del ') !== false or strpos($textmassage , 'پاک کردن ') !== false ) {
+if ( $status == 'creator' or $status == 'administrator' or in_array($from_id,$admin)){ 
+$num = str_replace(['/del ','پاک کردن '],'',$textmassage); 
+if ($num <= 999999999 && $num >= 1){ 
+for($i=$message_id; $i>=$message_id-$num; $i--){ 
+bot('deletemessage',[ 
+'chat_id' => $chat_id, 
+'message_id' =>$i, 
+]); 
+} 
+bot('sendmessage',[ 
+'chat_id' => $chat_id, 
+'text' =>"$num پیام گروه با موفقیت پاک شد توسط ربات️", 
+]); 
+} 
+else 
+{ 
+bot('sendmessage',[ 
+'chat_id' => $chat_id, 
+'text'=>"عدد وارد شده باید بین 1تا 999999999 باشد", 
+]); 
+} 
+}
+}
+} 
