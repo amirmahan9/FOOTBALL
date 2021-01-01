@@ -1,25 +1,77 @@
-elseif ( strpos($textmassage , '/del ') !== false or strpos($textmassage , 'پاک کردن ') !== false ) {
-if ( $status == 'creator' or $status == 'administrator' or in_array($from_id,$admin)){ 
-$num = str_replace(['/del ','پاک کردن '],'',$textmassage); 
-if ($num <= 999999999 && $num >= 1){ 
-for($i=$message_id; $i>=$message_id-$num; $i--){ 
-bot('deletemessage',[ 
-'chat_id' => $chat_id, 
-'message_id' =>$i, 
-]); 
-} 
-bot('sendmessage',[ 
-'chat_id' => $chat_id, 
-'text' =>"$num پیام گروه با موفقیت پاک شد توسط ربات️", 
-]); 
-} 
-else 
-{ 
-bot('sendmessage',[ 
-'chat_id' => $chat_id, 
-'text'=>"عدد وارد شده باید بین 1تا 999999999 باشد", 
-]); 
-} 
+<?php
+# -- Developer : Pouria Hosseini | Channel : @iRoSource | Pv : @MrCodi -- #
+error_reporting(0);
+set_time_limit(0);
+$API_KEY = '1428201227:AAGxzJ4h4axTXrHQj_v886GvtDIGqYgn9tc'; # -- Token -- #
+define('API_KEY', $API_KEY);
+function bot($method, $datas = []){
+    $url = "https://api.telegram.org/bot" . API_KEY . "/" . $method;
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $datas);
+    $res = curl_exec($ch);
+    if (curl_error($ch)) {
+        var_dump(curl_error($ch));
+    } else {
+        return json_decode($res);
+}}
+$update = json_decode(file_get_contents('php://input'));
+$text = $update->message->text;
+$chat_id = $update->message->chat->id;
+# -----
+if(!file_exists("data")){mkdir("data");}
+if($text == '/start'){
+	bot('sendMessage',[
+	'chat_id' => $chat_id,
+	'text' => "سلام\nبرای پاک کردن پیام های کانال خود ربات را در کانال ادمین کرده و اخرین پیام کانال را اینجا فروارد کنید"
+	]);
 }
+elseif($update->message->forward_from_chat){
+	$channel = $update->message->forward_from_chat->username;
+	$message_id = $update->message->forward_from_message_id;
+	$botid = json_decode(file_get_contents('https://api.telegram.org/bot'.API_KEY.'/getme'))->result->id;
+	$truechannel = json_decode(file_get_contents('https://api.telegram.org/bot'.API_KEY."/getChatMember?chat_id=@$channel&user_id=".$botid))->result->status;
+	if($truechannel == 'administrator'){
+		file_put_contents("data/$chat_id.txt","count|$channel|$message_id");
+		bot('sendMessage',[
+		'chat_id' => $chat_id,
+		'text' => "تعداد پیام هایی که میخاهید پاک کنید ارسال کنید\nتعداد باید بین 1 تا 100 باشد"
+		]);
+	}else{
+		bot('sendMessage',[
+		'chat_id' => $chat_id,
+		'text' => "ابتدا ربات را ادمین کانال کنید"
+		]);
+	}
 }
-} 
+elseif(strpos(file_get_contents("data/$chat_id.txt"),"count|") !== false){
+	if($text >= 1 and $text <= 100){
+		$get = explode("|",file_get_contents("data/$chat_id.txt"));
+		$channel = $get[1];
+		$message_id = $get[2];
+		unlink("data/$chat_id.txt");
+		bot('sendMessage',[
+		'chat_id' => $chat_id,
+		'text' => "لطفا کمی صبر کنید"
+		]);
+		$next = $message_id - $text;
+		for($x = $message_id; $x >= $next; $x--){
+		    bot('deleteMessage',[
+			'chat_id' => "@$channel",
+			'message_id' => $x
+			]);
+			if($x < 1 ){ break; }
+		}
+		bot('sendMessage',[
+		'chat_id' => $chat_id,
+		'text' => "پاک سازی پیام های به اتمام رسید"
+		]);
+	}else{
+		bot('sendMessage',[
+		'chat_id' => $chat_id,
+		'text' => "تعداد پیام هایی که میخاهید پاک کنید ارسال کنید\nتعداد باید بین 1 تا 100 باشد"
+		]);
+	}
+}
+?>
